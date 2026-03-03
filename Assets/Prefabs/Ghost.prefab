@@ -49,6 +49,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 46f311046d2104da8b56be3d0a49a119, type: 3}
+      propertyPath: m_Icon
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 46f311046d2104da8b56be3d0a49a119, type: 3}
       propertyPath: m_Name
       value: Ghost
       objectReference: {fileID: 0}
@@ -140,6 +144,9 @@ MonoBehaviour:
   MeshR:
   - {fileID: 839705036205447455}
   Speed: 4
+  coinCountText: {fileID: 0}
+  deathCountText: {fileID: 0}
+  victoryPanel: {fileID: 0}
 --- !u!114 &-2457829726307857836
 MonoBehaviour:
   m_ObjectHideFlags: 0

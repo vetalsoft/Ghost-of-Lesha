@@ -1,0 +1,14 @@
+root = true
+
+[*.cs]
+# max_line_length = 120
+# Стиль скобок: K&R (скобка на той же строке) для всего
+csharp_new_line_before_open_brace = none
+
+# Запрещает перенос else/else if на новую строку
+csharp_new_line_before_else = false
+
+# Опционально: настройки отступов и пробелов для единообразия
+indent_style = space
+indent_size = 4
+tab_width = 4

@@ -2,11 +2,12 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-public class LevelGenerator : MonoBehaviour
-{
+[ExecuteAlways]
+public class LevelGenerator : MonoBehaviour {
 
 
     [Header("Префабы блоков")]
+    public Transform levelParent; // Родительский объект для сгенерированных блоков
     public GameObject blockGround; // Символ "g"
     public GameObject blockLava;   // Символ "l"
     public GameObject blockBorder;    // Символ "b"
@@ -15,7 +16,7 @@ public class LevelGenerator : MonoBehaviour
 
     [Header("Карта уровня (12x12)")]
     [TextArea(5, 10)]
-    private string[] levelMap = new string[]
+    string[] levelMap = new string[]
     {
         "bbbbbbbbbbbb",
         "blCllClCgggb",
@@ -31,19 +32,12 @@ public class LevelGenerator : MonoBehaviour
         "bbbbbbbbbbbb"
     };
 
-    private Dictionary<char, GameObject> blockMapping;
-    private float blockSize = 1.0f;
-    private Vector3 playerSpawnPosition = Vector3.zero;
+    Dictionary<char, GameObject> blockMapping;
+    float blockSize = 1.0f;
+    Vector3 playerSpawnPosition = Vector3.zero;
     public int AllCoins = 0;
 
-    void Start()
-    {
-        InitBlockMapping();
-        GenerateLevelFromMap();
-    }
-
-    void InitBlockMapping()
-    {
+    void InitBlockMapping() {
         blockMapping = new Dictionary<char, GameObject>();
 
         // Маппинг символов на префабы
@@ -52,15 +46,16 @@ public class LevelGenerator : MonoBehaviour
         if (blockBorder != null) blockMapping['b'] = blockBorder;
     }
 
-    void SpawnBlock (char symbol, float x, float z)
-    {
+    void SpawnBlock(char symbol, float x, float z) {
         GameObject prefabToSpawn = blockMapping[symbol];
         Vector3 position = new Vector3(x, prefabToSpawn.transform.localPosition.y, z);
-        Instantiate(prefabToSpawn, position, Quaternion.identity);
+        var newBlock = Instantiate(prefabToSpawn, position, Quaternion.identity);
+        newBlock.transform.SetParent(levelParent);
     }
 
-    void GenerateLevelFromMap()
-    {
+    [ContextMenu("Generate Level")]
+    void GenerateLevelFromMap() {
+        InitBlockMapping();
         int rows = levelMap.Length;
         if (rows == 0) return;
 
@@ -70,23 +65,19 @@ public class LevelGenerator : MonoBehaviour
         float offsetX = (cols - 1) * blockSize / 2f;
         float offsetZ = (rows - 1) * blockSize / 2f;
 
-        for (int z = 0; z < rows; z++)
-        {
+        for (int z = 0; z < rows; z++) {
             string rowString = levelMap[z];
 
-            for (int x = 0; x < cols; x++)
-            {
+            for (int x = 0; x < cols; x++) {
                 char symbol = rowString[x];
                 float coordX = (x * blockSize) - offsetX;
                 float coordZ = (z * blockSize) - offsetZ;
 
-                if (blockMapping.ContainsKey(symbol))
-                {
+                if (blockMapping.ContainsKey(symbol)) {
                     SpawnBlock(symbol, coordX, coordZ);
                 }
                 // Символ "S" - респ
-                else if (symbol == 'S')
-                {
+                else if (symbol == 'S') {
                     playerSpawnPosition = new Vector3(
                         coordX,
                         1.0f, // Высота над землей
@@ -96,38 +87,50 @@ public class LevelGenerator : MonoBehaviour
                     SpawnBlock('g', coordX, coordZ);
                 }
                 // Символа "C" - монетка на земле
-                else if (symbol == 'C')
-                {
-                    if (coinPrefab != null)
-                    {
+                else if (symbol == 'C') {
+                    if (coinPrefab != null) {
                         // Позиция монетки
                         Vector3 coinPosition = new Vector3(
                             coordX,
                             1.0f,
                             coordZ
                         );
-                        
+
                         // Создаем монетку
                         GameObject coin = Instantiate(coinPrefab, coinPosition, Quaternion.identity);
                         coin.transform.Rotate(0, UnityEngine.Random.Range(0, 360), 0);
+                        coin.transform.SetParent(levelParent);
                         SpawnBlock('g', coordX, coordZ);
                         AllCoins++;
-                    }
-                    else
-                    {
+                    } else {
                         Debug.LogWarning("Coin prefab не назначен в Inspector!");
                     }
-                }
-                else
-                {
-                     Debug.LogWarning($"Неизвестный символ '{symbol}' в позиции ({x}, {z})");
+                } else {
+                    Debug.LogWarning($"Неизвестный символ '{symbol}' в позиции ({x}, {z})");
                 }
             }
         }
 
         Debug.Log($"Точка появления игрока установлена на {playerSpawnPosition}");
         GameObject player = Instantiate(playerPrefab, playerSpawnPosition, Quaternion.identity);
+        player.transform.SetParent(levelParent);
 
         Debug.Log($"Уровень {cols}x{rows} сгенерирован!");
+    }
+
+    [ContextMenu("Clear Level")]
+    void ClearLevel() {
+        // В режиме [ExecuteAlways] (в редакторе) нужно использовать DestroyImmediate
+        // В самой игре (Play mode) лучше использовать Destroy
+        if (levelParent == null) return;
+
+        var children = new List<GameObject>();
+        foreach (Transform child in levelParent) children.Add(child.gameObject);
+
+        foreach (var child in children) {
+            if (Application.isPlaying) Destroy(child);
+            else DestroyImmediate(child);
+        }
+        AllCoins = 0;
     }
 }

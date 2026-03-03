@@ -1,7 +1,6 @@
 using UnityEngine;
 
-public class CameraGhost : MonoBehaviour
-{
+public class CameraGhost : MonoBehaviour {
     [Header("Камера")]
     public Transform cameraFollow;
 
@@ -13,16 +12,15 @@ public class CameraGhost : MonoBehaviour
     public float smoothSpeed = 5f;
     // Скорость сглаживания поворота, устраняет мелкие тряски камеры
     public float rotationSmoothSpeed = 3f;
-    private Vector3 velocity = Vector3.zero;
+    Vector3 velocity = Vector3.zero;
 
-    private void Start() {
+    void Start() {
         if (cameraFollow == null) {
             GameObject cam = GameObject.FindGameObjectWithTag("MainCamera");
             cameraFollow = cam.transform;
         }
     }
-    void LateUpdate()
-    {
+    void LateUpdate() {
         Transform target = this.transform;
 
         if (target == null) return;
